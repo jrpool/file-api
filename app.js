@@ -1,46 +1,68 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+// Create a server application.
+const app = require('express')();
 
-var index = require('./routes/index');
-var users = require('./routes/users');
+// Import and configure required modules.
+const textParser
+  = require('body-parser').text({inflate: false, limit: 1000, type: '*/*'});
+const fs = require('fs');
 
-var app = express();
+// Formulate a success report.
+const reportSuccess = (verb, nextID) =>
+  `{"message": "Successfully ${verb} the file ${nextID}.json"}\n`;
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// Formulate an error report.
+const reportError = (clause, error) =>
+  `Could not ${clause}.\nError: ${error.message}`;
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+///// ROUTES /////
 
-app.use('/', index);
-app.use('/users', users);
+// Add a quote.
+app.post(
+  '/api/quotes',
+  textParser,
+  (req, res) => {
+    // Get the next ID.
+    fs.readFile(
+      __dirname + '/util/nextid.json',
+      'utf8',
+      (err, data) => {
+        if (err) {
+          res.send(reportError('look up the next quote’s ID', err));
+        }
+        else {
+          const nextID = JSON.parse(data).nextID;
+          // Write the request body to a file named with the next ID.
+          fs.writeFile(
+            __dirname + '/public/quotes/' + nextID + '.json',
+            req.body.toString(),
+            'utf8',
+            err => {
+              if (err) {
+                res.send(reportError('record the quote', err));
+              }
+              else {
+                res.send(reportSuccess('created', nextID));
+                // Increment the next ID.
+                fs.writeFile(
+                  __dirname + '/util/nextid.json',
+                  `{"nextID": "${Number.parseInt(nextID) + 1}"}`,
+                  'utf8',
+                  err => {
+                    if (err) {
+                      res.send(reportError('increment the next ID', err));
+                    }
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+  }
+);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+// Make the application listen for queries.
+app.listen(3000, () => {
+  console.log('App queriable at http://localhost:3000');
 });
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-module.exports = app;
