@@ -23,10 +23,6 @@ The API receives and transmits data as JSON-compliant strings.
 
 The application fulfills the requirements of the “RESTful Routing” module in Phase 2 of the [Learners Guild][lg] curriculum, and specifically the “RESTful Routing Using Files” exercise in that module.
 
-## Implementation
-
-The skeleton for this application was created with the [Express Application Generator][expappgen], executed with the command `express --git --view=ejs file-api`.
-
 ## Installation and Setup
 
 0. These instructions presuppose that (1) [npm][npm] and [cURL][curl] are installed.
