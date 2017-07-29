@@ -6,9 +6,9 @@
   "private": false,
   "version": "0.0.0",
   "scripts": {
-    "start": "DEBUG=file-api:* node ./bin/www",
-    "startwin": "set DEBUG=file-api:* node ./bin/www",
-    "lint": "eslint app.js bin/ routes/; exit 0"
+    "start": "DEBUG=file-api:* node ./app",
+    "startwin": "set DEBUG=file-api:* node ./app",
+    "lint": "eslint app.js; exit 0"
   },
   "dependencies": {
     "body-parser": "~1.16.0",
