@@ -12,7 +12,7 @@ const reportSuccess = (verb, nextID) =>
 
 // Formulate an error report.
 const reportError = (clause, error) =>
-  `Could not ${clause}.\nError: ${error.message}`;
+  `Could not ${clause}.\nError: ${error.message}\n`;
 
 ///// ROUTES /////
 
@@ -34,7 +34,7 @@ app.post(
           // Write the request body to a file named with the next ID.
           fs.writeFile(
             __dirname + '/public/quotes/' + nextID + '.json',
-            req.body.toString(),
+            req.body,
             'utf8',
             err => {
               if (err) {
@@ -56,6 +56,67 @@ app.post(
               }
             }
           );
+        }
+      }
+    );
+  }
+);
+
+// Retrieve a quote.
+app.get(
+  '/api/quotes/:id',
+  (req, res) => {
+    // Get the specified quote.
+    fs.readFile(
+      __dirname + '/public/quotes/' + req.params.id + '.json',
+      'utf8',
+      (err, data) => {
+        if (err) {
+          res.send(reportError('look up the quote', err));
+        }
+        else {
+          res.send(data + '\n');
+        }
+      }
+    );
+  }
+);
+
+// Replace a quote.
+app.put(
+  '/api/quotes/:id',
+  textParser,
+  (req, res) => {
+    // Write the request body to a file named with the specified ID.
+    fs.writeFile(
+      __dirname + '/public/quotes/' + req.params.id + '.json',
+      req.body,
+      'utf8',
+      err => {
+        if (err) {
+          res.send(reportError('replace the quote', err));
+        }
+        else {
+          res.send(reportSuccess('replaced', req.params.id));
+        }
+      }
+    );
+  }
+);
+
+// Delete a quote.
+app.delete(
+  '/api/quotes/:id',
+  (req, res) => {
+    // Delete the specified quote.
+    fs.unlink(
+      __dirname + '/public/quotes/' + req.params.id + '.json',
+      (err, data) => {
+        if (err) {
+          res.send(reportError('delete the quote', err));
+        }
+        else {
+          res.send(reportSuccess('deleted', req.params.id));
         }
       }
     );
